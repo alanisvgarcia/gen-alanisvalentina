@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pensamiento Vivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:     #0A0609;
+      --bg-surface:  #130A10;
+      --bg-card:     #170C14;
+      --border:      rgba(255, 110, 180, 0.10);
+      --border-mid:  rgba(255, 110, 180, 0.28);
+      --accent:      #FF6EB4;
+      --accent-dim:  #C0407A;
+      --accent-glow: rgba(255, 110, 180, 0.12);
+      --text-hi:     #F5E8F0;
+      --text-mid:    #A07890;
+      --text-lo:     #4A2A3E;
+      --mono:        'JetBrains Mono', monospace;
+      --sans:        'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-hi);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grain texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 2px; }
+
+    /* ══ NAV ══ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 60px;
+      background: rgba(10, 6, 9, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--text-hi); font-weight: 400; }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-mid);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ══ HERO ══ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 2.5rem;
+      overflow: hidden;
+    }
+
+    /* Organic radial glow — mimics the translucent tissue in the image */
+    .hero-glow {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-glow-1 {
+      width: 700px; height: 700px;
+      top: -100px; left: -150px;
+      background: radial-gradient(circle, rgba(255,110,180,0.07) 0%, rgba(180,60,120,0.04) 40%, transparent 70%);
+    }
+    .hero-glow-2 {
+      width: 500px; height: 500px;
+      bottom: -80px; right: -80px;
+      background: radial-gradient(circle, rgba(200,80,140,0.06) 0%, transparent 70%);
+    }
+
+    /* Organic blob SVG background */
+    .hero-blob {
+      position: absolute;
+      top: 50%; right: -5%;
+      transform: translateY(-50%);
+      width: 55%;
+      max-width: 600px;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
+    /* Pulse canvas */
+    #pulse-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0.28;
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 30px; height: 1px;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .hero-headline {
+      font-family: var(--mono);
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text-hi);
+      margin-bottom: 1.5rem;
+    }
+    .hero-headline .accent { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      max-width: 520px;
+      line-height: 1.8;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--bg-deep);
+      background: var(--accent);
+      padding: 0.75rem 1.75rem;
+      text-decoration: none;
+      transition: box-shadow 0.25s, transform 0.2s;
+    }
+    .hero-cta:hover {
+      box-shadow: 0 0 32px rgba(255,110,180,0.45);
+      transform: translateY(-1px);
+    }
+    .hero-cta svg { width: 14px; height: 14px; }
+
+    /* Live badge */
+    .live-badge {
+      position: absolute;
+      top: 90px; right: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-mid);
+      letter-spacing: 0.1em;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--accent); }
+      50% { opacity: 0.25; box-shadow: none; }
+    }
+
+    /* ══ SECTIONS ══ */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 5rem 2.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: var(--text-hi);
+      margin-bottom: 3rem;
+      line-height: 1.2;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+      margin: 0 auto 5rem;
+      max-width: 1100px;
+      opacity: 0.2;
+    }
+
+    /* ══ TOPIC CHIPS ══ */
+    .topics-list { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+    .topic-chip {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      text-transform: uppercase;
+    }
+    .topic-chip:hover,
+    .topic-chip.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    /* ══ IDEAS GRID ══ */
+    .ideas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5px;
+    }
+
+    .idea-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .idea-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 0;
+      background: linear-gradient(180deg, var(--accent), var(--accent-dim));
+      transition: height 0.3s ease;
+    }
+    .idea-card:hover {
+      border-color: var(--border-mid);
+      background: rgba(255,110,180,0.04);
+      transform: translateY(-2px);
+    }
+    .idea-card:hover::before { height: 100%; }
+
+    /* Organic membrane shimmer on hover */
+    .idea-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(255,110,180,0.06) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+    .idea-card:hover::after { opacity: 1; }
+
+    .card-tag {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent-dim);
+      margin-bottom: 0.9rem;
+    }
+    .card-title {
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-hi);
+      margin-bottom: 0.75rem;
+      line-height: 1.35;
+    }
+    .card-excerpt {
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+      margin-bottom: 1.4rem;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-date {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-lo);
+    }
+    .card-arrow {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .idea-card:hover .card-arrow { opacity: 1; transform: translateX(0); }
+
+    /* Featured card */
+    .idea-card.featured {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    .idea-card.featured .card-title { font-size: 1.4rem; }
+
+    .featured-quote {
+      background: var(--bg-surface);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+    }
+
+    /* ══ ABOUT ══ */
+    .about-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-text p {
+      color: var(--text-mid);
+      font-size: 0.95rem;
+      line-height: 1.9;
+      margin-bottom: 1.2rem;
+    }
+    .about-text strong { color: var(--text-hi); font-weight: 500; }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+    }
+    .stat-cell {
+      background: var(--bg-card);
+      padding: 1.5rem;
+    }
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--text-mid); }
+
+    /* ══ FOOTER ══ */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-copy {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-lo);
+      letter-spacing: 0.06em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-lo);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ══ FADE IN ══ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 768px) {
+      nav { padding: 0 1.2rem; }
+      .nav-links { display: none; }
+      section { padding: 3.5rem 1.2rem; }
+      .hero { padding: 0 1.2rem; }
+      .hero-headline { font-size: 2rem; }
+      .idea-card.featured { grid-template-columns: 1fr; }
+      .about-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .live-badge { display: none; }
+      footer { flex-direction: column; gap: 1rem; align-items: flex-start; padding: 1.5rem 1.2rem; }
+      .hero-blob { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">gen://<span>AlanisValentina</span></a>
+    <ul class="nav-links">
+      <li><a href="#ideas">Ideas</a></li>
+      <li><a href="#temas">Temas</a></li>
+      <li><a href="#sobre-mi">Sobre mí</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <canvas id="pulse-canvas"></canvas>
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+
+    <!-- Organic blob shape — echoes the microscope image -->
+    <svg class="hero-blob" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#FF6EB4" d="
+        M320,180 C330,230 300,290 260,320 C220,350 160,360 120,330
+        C80,300 60,240 70,190 C80,140 120,100 170,80
+        C220,60 280,70 310,110 C330,135 318,165 320,180Z
+      "/>
+      <circle cx="200" cy="200" r="80" fill="none" stroke="#FF6EB4" stroke-width="1" opacity="0.4"/>
+      <circle cx="200" cy="200" r="130" fill="none" stroke="#FF6EB4" stroke-width="0.5" opacity="0.2"/>
+      <!-- Sucker-like circles echoing the scolex suckers -->
+      <circle cx="160" cy="170" r="35" fill="none" stroke="#FF6EB4" stroke-width="1.5" opacity="0.5"/>
+      <circle cx="240" cy="170" r="35" fill="none" stroke="#FF6EB4" stroke-width="1.5" opacity="0.5"/>
+      <circle cx="160" cy="240" r="35" fill="none" stroke="#FF6EB4" stroke-width="1.5" opacity="0.5"/>
+      <circle cx="240" cy="240" r="35" fill="none" stroke="#FF6EB4" stroke-width="1.5" opacity="0.5"/>
+      <circle cx="200" cy="200" r="18" fill="#FF6EB4" opacity="0.15"/>
+    </svg>
+
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      SEÑAL ACTIVA
+    </div>
+
+    <div class="hero-inner">
+      <p class="hero-eyebrow">Alanis Valentina García</p>
+      <h1 class="hero-headline">
+        La biología es<br />
+        una ciencia de<br />
+        <span class="accent">la información.</span>
+      </h1>
+      <p class="hero-sub">
+        El genoma es código. La evolución, un algoritmo. La célula, un sistema
+        distribuido. Estas ideas exploran la frontera donde la biología
+        deja de ser solo vida — y empieza a ser lógica.
+      </p>
+      <a href="#ideas" class="hero-cta">
+        Explorar ideas
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 8h10M9 4l4 4-4 4"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- TEMAS -->
+  <section id="temas" class="fade-in">
+    <p class="section-label">// Filtrar por tema</p>
+    <div class="topics-list">
+      <button class="topic-chip active" onclick="filterCards('all', this)">Todos</button>
+      <button class="topic-chip" onclick="filterCards('tecnologia', this)">Tecnología</button>
+      <button class="topic-chip" onclick="filterCards('sociedad', this)">Sociedad</button>
+      <button class="topic-chip" onclick="filterCards('ciencia', this)">Ciencia</button>
+      <button class="topic-chip" onclick="filterCards('filosofia', this)">Filosofía</button>
+      <button class="topic-chip" onclick="filterCards('futuro', this)">Futuro</button>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- IDEAS -->
+  <section id="ideas">
+    <p class="section-label">// Ideas publicadas</p>
+    <h2 class="section-title fade-in">Lo que he estado pensando</h2>
+
+    <div class="ideas-grid" id="ideas-grid">
+
+      <!-- Featured -->
+      <div class="idea-card featured fade-in" data-tema="tecnologia">
+        <div>
+          <p class="card-tag">Tecnología · Destacado</p>
+          <h3 class="card-title">La inteligencia artificial no piensa — redistribuye patrones del pasado</h3>
+          <p class="card-excerpt">
+            Cada respuesta que genera un modelo de lenguaje es una síntesis estadística
+            de todo lo que los humanos han escrito. Eso no es pensamiento: es herencia.
+            La pregunta real es si esa herencia puede volverse generativa.
+          </p>
+          <div class="card-meta">
+            <span class="card-date">junio 2025</span>
+            <span class="card-arrow">→ leer más</span>
+          </div>
+        </div>
+        <div class="featured-quote">
+          <p style="font-family: var(--mono); font-size:0.78rem; color: var(--text-mid); line-height:1.9;">
+            <span style="color: var(--accent);">// fragmento</span><br/><br/>
+            "Un modelo entrenado con texto humano no 'sabe' nada. Pero puede simular
+            saberlo con tal precisión que la diferencia empieza a no importar para
+            fines prácticos. Eso debería inquietarnos más de lo que nos entusiasma."
+          </p>
+        </div>
+      </div>
+
+      <div class="idea-card fade-in" data-tema="sociedad">
+        <p class="card-tag">Sociedad</p>
+        <h3 class="card-title">La atención es el nuevo territorio político</h3>
+        <p class="card-excerpt">
+          Quien controla lo que miras, controla lo que crees posible. Las redes sociales
+          no son plataformas de comunicación: son sistemas de gestión de la imaginación colectiva.
+        </p>
+        <div class="card-meta">
+          <span class="card-date">mayo 2025</span>
+          <span class="card-arrow">→ leer más</span>
+        </div>
+      </div>
+
+      <div class="idea-card fade-in" data-tema="ciencia">
+        <p class="card-tag">Ciencia</p>
+        <h3 class="card-title">La biología es el mejor ingeniero que jamás habrá existido</h3>
+        <p class="card-excerpt">
+          Tres mil millones de años de prueba y error han producido soluciones que
+          ningún equipo de ingeniería humana ha podido superar. Y apenas empezamos a leerlas.
+        </p>
+        <div class="card-meta">
+          <span class="card-date">abril 2025</span>
+          <span class="card-arrow">→ leer más</span>
+        </div>
+      </div>
+
+      <div class="idea-card fade-in" data-tema="filosofia">
+        <p class="card-tag">Filosofía</p>
+        <h3 class="card-title">Libre albedrío como ilusión funcional</h3>
+        <p class="card-excerpt">
+          Quizás no importa si el libre albedrío "existe" en sentido metafísico.
+          Lo que importa es que actuar como si existiera produce mejores resultados
+          que actuar como si no.
+        </p>
+        <div class="card-meta">
+          <span class="card-date">marzo 2025</span>
+          <span class="card-arrow">→ leer más</span>
+        </div>
+      </div>
+
+      <div class="idea-card fade-in" data-tema="futuro">
+        <p class="card-tag">Futuro</p>
+        <h3 class="card-title">El trabajo que no puede automatizarse es el que todavía no hemos inventado</h3>
+        <p class="card-excerpt">
+          Cada ola de automatización ha destruido trabajos y creado otros nuevos.
+          El error es pensar que esta vez es diferente. El error también es pensar que no lo es.
+        </p>
+        <div class="card-meta">
+          <span class="card-date">febrero 2025</span>
+          <span class="card-arrow">→ leer más</span>
+        </div>
+      </div>
+
+      <div class="idea-card fade-in" data-tema="tecnologia">
+        <p class="card-tag">Tecnología</p>
+        <h3 class="card-title">Las herramientas nos cambian más de lo que nosotros las cambiamos a ellas</h3>
+        <p class="card-excerpt">
+          Gutenberg no solo democratizó el conocimiento: cambió cómo pensamos.
+          Internet no solo conectó personas: cambió cómo recordamos. ¿Qué nos está
+          haciendo la IA?
+        </p>
+        <div class="card-meta">
+          <span class="card-date">enero 2025</span>
+          <span class="card-arrow">→ leer más</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SOBRE MÍ -->
+  <section id="sobre-mi">
+    <p class="section-label">// Sobre mí</p>
+    <h2 class="section-title fade-in">Quién está detrás de estas ideas</h2>
+    <div class="about-layout fade-in">
+      <div class="about-text">
+        <p>
+          Ser vivo con ideas de bióloga. Me ilumina la naturaleza, me inspira
+          la tecnología, y paso el tiempo intentando entender qué tienen en común.
+        </p>
+        <p>
+          Estoy al inicio de mi carrera, descubriendo los <strong>patrones en el genoma
+          que nos hacen individuos</strong> y al mismo tiempo, humanos. Me interesa
+          la frontera donde la biología se convierte en datos: el ADN no solo como
+          molécula, sino como <strong>la base de datos más densa y antigua que existe</strong>.
+        </p>
+        <p>
+          Creo que el próximo recurso de información más explotado será nuestro
+          propio código genético.
+        </p>
+        <p>
+          Este espacio es donde conecto esas ideas con filosofía, con preguntas
+          sin respuesta fácil, y con los aprendizajes de alguien que está
+          empezando a construir su camino entre <strong>la biología y la tecnología</strong>.
+        </p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-cell">
+          <div class="stat-num">4G</div>
+          <div class="stat-label">Bases en el genoma humano</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num">~20k</div>
+          <div class="stat-label">Genes que nos hacen humanos</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num">99.9%</div>
+          <div class="stat-label">ADN compartido entre humanos</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num">0.1%</div>
+          <div class="stat-label">Lo que nos hace individuos</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-copy">© 2025 gen://AlanisValentina — señal en curso</span>
+    <div class="footer-links">
+      <a href="#">Twitter</a>
+      <a href="#">LinkedIn</a>
+      <a href="#">RSS</a>
+    </div>
+  </footer>
+
+  <script>
+    /* ── PULSE CANVAS — rosa/magenta ── */
+    const canvas = document.getElementById('pulse-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, offset = 0;
+
+    function resize() {
+      w = canvas.width  = canvas.offsetWidth;
+      h = canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Organic membrane colors matching the microscope image
+    const lineColors = [
+      'rgba(255,110,180,',   // hot pink
+      'rgba(200, 80,150,',   // magenta-rose
+      'rgba(255,160,210,',   // pale pink
+    ];
+
+    function drawPulse() {
+      ctx.clearRect(0, 0, w, h);
+
+      const lines = 3;
+      for (let l = 0; l < lines; l++) {
+        const yBase = h * (0.30 + l * 0.20);
+        const amp   = 28 - l * 7;
+        const freq  = 0.005 + l * 0.0025;
+        const alpha = 0.55 - l * 0.15;
+        const speed = 0.7 + l * 0.35;
+
+        ctx.beginPath();
+        ctx.strokeStyle = lineColors[l] + alpha + ')';
+        ctx.lineWidth   = 1.2 - l * 0.3;
+
+        for (let x = 0; x < w; x++) {
+          const t = x * freq + offset * speed;
+          let y = yBase;
+          const phase = ((t % (Math.PI * 2)) / (Math.PI * 2));
+
+          // EKG-like sharp peaks
+          if (phase > 0.38 && phase < 0.43) {
+            y -= amp * 2.8 * Math.sin((phase - 0.38) / 0.05 * Math.PI);
+          } else if (phase > 0.43 && phase < 0.47) {
+            y += amp * 1.3 * Math.sin((phase - 0.43) / 0.04 * Math.PI);
+          } else {
+            y += Math.sin(t * 0.45) * (amp * 0.18);
+          }
+
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      offset += 0.014;
+      requestAnimationFrame(drawPulse);
+    }
+    drawPulse();
+
+    /* ── FADE IN ── */
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    /* ── TOPIC FILTER ── */
+    function filterCards(tema, btn) {
+      document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.idea-card').forEach(card => {
+        card.style.display = (tema === 'all' || card.dataset.tema === tema) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
